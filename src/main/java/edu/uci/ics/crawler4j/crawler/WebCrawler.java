@@ -45,6 +45,8 @@ import edu.uci.ics.crawler4j.url.WebURL;
  * @author Yasser Ganjisaffar
  */
 public class WebCrawler implements Runnable {
+	
+	
 
     protected static final Logger logger = LoggerFactory.getLogger(WebCrawler.class);
 
@@ -352,6 +354,12 @@ public class WebCrawler implements Runnable {
                 return;
             }
 
+            // check -- is "seed" page
+            boolean seedUrl = false;
+            if (isSeedUrl(curURL)) seedUrl = true;
+            
+            
+            
             fetchResult = pageFetcher.fetchPage(curURL);
             int statusCode = fetchResult.getStatusCode();
             handlePageStatusCode(curURL, statusCode,
@@ -385,7 +393,7 @@ public class WebCrawler implements Runnable {
 
                     if (myController.getConfig().isFollowRedirects()) {
                         int newDocId = docIdServer.getDocId(movedToUrl);
-                        if (newDocId > 0) {
+                        if (newDocId > 0 && !seedUrl) {
                             logger.debug("Redirect page: {} is already seen", curURL);
                             return;
                         }
@@ -425,7 +433,7 @@ public class WebCrawler implements Runnable {
 
             } else { // if status code is 200
                 if (!curURL.getURL().equals(fetchResult.getFetchedUrl())) {
-                    if (docIdServer.isSeenBefore(fetchResult.getFetchedUrl())) {
+                    if (docIdServer.isSeenBefore(fetchResult.getFetchedUrl()) && !seedUrl) {
                         logger.debug("Redirect page: {} has already been seen", curURL);
                         return;
                     }
@@ -508,7 +516,17 @@ public class WebCrawler implements Runnable {
         }
     }
 
-    public Thread getThread() {
+    /**
+     * Check is seed url. if is it -- skip checking in docIdServer.
+     * 
+     * @param curURL
+     * @return
+     */
+    protected boolean isSeedUrl(WebURL curURL) {
+		return false;
+	}
+
+	public Thread getThread() {
         return myThread;
     }
 

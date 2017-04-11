@@ -1,0 +1,78 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+
+group = 'ru.nlp_project.story_line2'
+def groupId = group
+version = '4.4.0-SNAPSHOT'
+//name = 'crawler4j'
+def artifactId = name
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+tasks.withType(JavaCompile) {
+	options.encoding = 'UTF-8'
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+		}
+	}
+	repositories {
+		maven {
+			credentials {
+				username "deployment"
+				password "deployment"
+			}
+			if(project.version.endsWith('-SNAPSHOT')) {
+				url "http://repo.nlp-project.ru:8082/nexus/content/repositories/snapshots/"
+			}  else {
+				url "http://repo.nlp-project.ru:8082/nexus/content/repositories/releases/"
+			}
+		}
+	}
+}
+
+
+repositories {
+	mavenCentral()
+	mavenLocal()
+	maven {
+		name "local-snapshots"
+		url  "http://repo.nlp-project.ru:8082/nexus/content/repositories/snapshots/"
+	}
+	maven {
+		name "local-releases"
+		url  "http://repo.nlp-project.ru:8082/nexus/content/repositories/releases/"
+	}
+	maven {
+		name "remote-snapshots"
+		url  "http://repo.nlp-project.ru:8082/nexus/content/repositories/snapshots/"
+	}
+	maven {
+		name "remote-releases"
+		url  "http://repo.nlp-project.ru:8082/nexus/content/repositories/releases/"
+	}
+
+	maven { url "http://download.oracle.com/maven" }
+}
+
+// repositories {
+//      maven { url "http://download.oracle.com/maven" }
+//      maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+//      maven { url "http://repo.maven.apache.org/maven2" }
+// }
+dependencies {
+    compile group: 'org.slf4j', name: 'slf4j-api', version:'1.7.22'
+    compile group: 'com.google.guava', name: 'guava', version:'21.0'
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version:'4.5.3'
+    compile group: 'com.sleepycat', name: 'je', version:'5.0.84'
+    compile group: 'org.apache.tika', name: 'tika-parsers', version:'1.14'
+    runtime group: 'ch.qos.logback', name: 'logback-classic', version:'1.1.7'
+    testCompile group: 'junit', name: 'junit', version:'4.12'
+    testCompile group: 'com.github.tomakehurst', name: 'wiremock', version:'2.4.1'
+    testCompile group: 'org.codehaus.groovy', name: 'groovy-all', version:'2.4.7'
+    testCompile group: 'org.spockframework', name: 'spock-core', version:'1.0-groovy-2.4'
+}
