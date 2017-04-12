@@ -4,7 +4,7 @@ apply plugin: 'maven-publish'
 
 group = 'ru.nlp_project.story_line2'
 def groupId = group
-version = '4.4.0'
+version = '4.4.1-SNAPSHOT'
 //name = 'crawler4j'
 def artifactId = name
 
