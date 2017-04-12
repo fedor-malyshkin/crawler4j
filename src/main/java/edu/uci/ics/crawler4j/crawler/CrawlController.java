@@ -219,16 +219,7 @@ public class CrawlController extends Configurable {
             final List<Thread> threads = new ArrayList<>();
             final List<T> crawlers = new ArrayList<>();
 
-            for (int i = 1; i <= numberOfCrawlers; i++) {
-                T crawler = crawlerFactory.newInstance();
-                Thread thread = new Thread(crawler, "Crawler " + i);
-                crawler.setThread(thread);
-                crawler.init(i, this);
-                thread.start();
-                crawlers.add(crawler);
-                threads.add(thread);
-                logger.info("Crawler {} started", i);
-            }
+            startCrawlerThreads(crawlerFactory, numberOfCrawlers, threads, crawlers);
 
             final CrawlController controller = this;
             final CrawlConfig config = this.getConfig();
@@ -345,6 +336,27 @@ public class CrawlController extends Configurable {
         }
     }
 
+	protected <T extends WebCrawler> void startCrawlerThreads(
+			final WebCrawlerFactory<T> crawlerFactory, final int numberOfCrawlers,
+			final List<Thread> threads, final List<T> crawlers)
+			throws Exception, InstantiationException, IllegalAccessException {
+		
+		threads.clear();
+		crawlers.clear();
+		
+		
+		for (int i = 1; i <= numberOfCrawlers; i++) {
+		    T crawler = crawlerFactory.newInstance();
+		    Thread thread = new Thread(crawler, "Crawler " + i);
+		    crawler.setThread(thread);
+		    crawler.init(i, this);
+		    thread.start();
+		    crawlers.add(crawler);
+		    threads.add(thread);
+		    logger.info("Crawler {} started", i);
+		}
+	}
+
     /**
      * Wait until this crawling session finishes.
      */
@@ -420,10 +432,13 @@ public class CrawlController extends Configurable {
         } else {
             if (docId < 0) {
                 docId = docIdServer.getDocId(canonicalUrl);
-                if (docId > 0) {
-                    logger.trace("This URL is already seen.");
-                    return;
-                }
+                
+                // skip checking
+                // if (docId > 0) {
+                //    logger.trace("This URL is already seen.");
+                //    return;
+                // }
+                
                 docId = docIdServer.getNewDocID(canonicalUrl);
             } else {
                 try {

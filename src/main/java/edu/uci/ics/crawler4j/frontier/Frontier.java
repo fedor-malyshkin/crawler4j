@@ -103,6 +103,7 @@ public class Frontier extends Configurable {
                 scheduledPages += newScheduledPage;
                 counters.increment(Counters.ReservedCounterNames.SCHEDULED_PAGES, newScheduledPage);
             }
+            // notify crawlers
             synchronized (waitingList) {
                 waitingList.notifyAll();
             }
@@ -120,6 +121,10 @@ public class Frontier extends Configurable {
                 }
             } catch (DatabaseException e) {
                 logger.error("Error while putting the url in the work queue", e);
+            }
+            // notify crawlers
+            synchronized (waitingList) {
+                waitingList.notifyAll();
             }
         }
     }
