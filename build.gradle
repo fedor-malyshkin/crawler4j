@@ -4,7 +4,7 @@ apply plugin: 'maven-publish'
 
 group = 'ru.nlp_project.story_line2'
 def groupId = group
-version = '4.4.0-SNAPSHOT'
+version = '4.4.0'
 //name = 'crawler4j'
 def artifactId = name
 
@@ -75,4 +75,46 @@ dependencies {
     testCompile group: 'com.github.tomakehurst', name: 'wiremock', version:'2.4.1'
     testCompile group: 'org.codehaus.groovy', name: 'groovy-all', version:'2.4.7'
     testCompile group: 'org.spockframework', name: 'spock-core', version:'1.0-groovy-2.4'
+}
+
+
+task gitByTagVersion(type:Exec)  {
+	// def props = loadProjectProperties(prj)
+	description "Create tag in local git by version in file"
+	workingDir projectDir
+	//on linux
+	commandLine "git",  "tag", "${version}", "--message=Gradle Release at ${new Date()}"
+}
+
+// execute only in execution phase
+gitByTagVersion.doFirst {
+	if(version.endsWith('-SNAPSHOT')) {
+		def msg = "Cannot create release with version: ${prj.version} (need set stable version in properties file)"
+		logger.error(msg)
+		throw new IllegalStateException(msg)
+	}
+}
+
+task gitPush(type:Exec) {
+	description "Push tag in remote storage"
+	workingDir projectDir
+	//on linux
+	commandLine "git",  "push" , "origin", "--tags"
+}
+
+publishToMavenLocal.dependsOn build
+task deployLocal (dependsOn: publishToMavenLocal) {
+	description "Install in local repo"
+}
+
+task deploy (dependsOn: publish) {
+	description "Install in remote repo"
+}
+
+gitByTagVersion.dependsOn build
+gitPush.dependsOn gitByTagVersion
+
+task release (dependsOn: [gitPush, publish]) {
+	//need to run "git config credential.helper store" in git project's directory
+	description "Make release of module (assign tag, push tag to git, publish)"
 }
